@@ -342,8 +342,8 @@ Para ello crea una nueva aplicación de consola con el siguiente comando:
 
 ```bash
 cd ..
-mkdir QueueProcessor
-cd QueueProcessor
+mkdir QueueProcessorDelete
+cd QueueProcessorDelete
 dotnet new console 
 ```
 
