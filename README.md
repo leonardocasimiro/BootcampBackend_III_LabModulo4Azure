@@ -173,8 +173,8 @@ npm i -g azure-functions-core-tools@4 --unsafe-perm true
 Una vez instalado, vamos a crear un nuevo proyecto de Azure Functions. Para ello, ejecuta el siguiente comando:
 
 ```bash
-mkdir -p 01-stack-relacional/03-cloud/azure/03-procesos-en-segundo-plano/azure-functions
-cd 01-stack-relacional/03-cloud/azure/03-procesos-en-segundo-plano/azure-functions
+mkdir -p azure-functions
+cd azure-functions
 func init
 ```
 El último comando iniciará un asistente donde tenemos que elegir el lenguaje de programación con el que queremos desarrollar esta Azure Function. Para este ejemplo elegiremos `1.dotnet` y en el segundo paso el lenguaje será `1.c#`. Una vez finalice la creación la misma estará disponible en la carpeta `01-stack-relacional/03-cloud/azure/03-procesos-en-segundo-plano/azure-functions`.

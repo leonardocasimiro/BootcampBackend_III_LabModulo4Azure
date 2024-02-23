@@ -60,6 +60,9 @@ namespace tour_of_heroes_api.Controllers
         // }
               // PUT: api/Hero/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    
+            // PUT: api/Hero/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutHero(int id, Hero hero)
         {
@@ -67,15 +70,18 @@ namespace tour_of_heroes_api.Controllers
             {
                 return BadRequest();
             }
+            var oldHero = await _context.Heroes.FindAsync(id);
+            _context.Entry(oldHero).State = EntityState.Detached;
 
-            var oldAlterEgo = _heroRepository.GetById(id).AlterEgo;
+
+            _context.Entry(hero).State = EntityState.Modified;
 
             try
             {
-                _heroRepository.Update(hero);
+                await _context.SaveChangesAsync();
 
                 /*********** Background processs (We have to rename the image) *************/
-                if (hero.AlterEgo != oldAlterEgo)
+                if (hero.AlterEgo != oldHero.AlterEgo)
                 {
                     // Get the connection string from app settings
                     string connectionString = _configuration.GetConnectionString("AzureStorage");
@@ -89,7 +95,7 @@ namespace tour_of_heroes_api.Controllers
                     // Create a dynamic object to hold the message
                     var message = new
                     {
-                        oldName = oldAlterEgo,
+                        oldName = oldHero.AlterEgo,
                         newName = hero.AlterEgo
                     };
 
@@ -99,11 +105,16 @@ namespace tour_of_heroes_api.Controllers
                 }
                 /*********** End Background processs *************/
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException)
             {
-
-                return NotFound(ex.Message);              
-                
+                if (!HeroExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
 
             return NoContent();
