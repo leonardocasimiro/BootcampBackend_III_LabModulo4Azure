@@ -43,6 +43,7 @@ Antes de nada asegurate que el contenedor de SQL server que creamos en el primer
 
 Para que esta API pueda funcionar necesitarás además de una base de datos SQL Server. Como venimos de una clase de Docker en tres horas 😙 y sabemos que podemos utilizar un contenedor para hospedar la misma vamos a crearlo con el siguiente comando:
 
+Crear:
 ```bash
 docker run \
 --name sqlserver \
@@ -52,6 +53,8 @@ docker run \
 -p 1433:1433 \
 -d mcr.microsoft.com/azure-sql-edge
 ```
+
+O Arrancar:
 ```bash
 docker start sqlserver
 ```
