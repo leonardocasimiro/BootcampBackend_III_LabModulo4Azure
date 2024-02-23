@@ -144,7 +144,7 @@ namespace tour_of_heroes_api.Controllers
                 // Create a dynamic object to hold the message
                 var message = new
                 {
-                    oldName = "heroe",
+                    oldName = hero.Name,
                     newName = "none Heroe"
                 };
 
