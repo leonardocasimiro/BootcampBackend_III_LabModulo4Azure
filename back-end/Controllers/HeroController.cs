@@ -63,25 +63,22 @@ namespace tour_of_heroes_api.Controllers
     
             // PUT: api/Hero/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+      [HttpPut("{id}")]
         public async Task<IActionResult> PutHero(int id, Hero hero)
         {
             if (id != hero.Id)
             {
                 return BadRequest();
             }
-            var oldHero = await _context.Heroes.FindAsync(id);
-            _context.Entry(oldHero).State = EntityState.Detached;
 
-
-            _context.Entry(hero).State = EntityState.Modified;
+            var oldAlterEgo = _heroRepository.GetById(id).AlterEgo;
 
             try
             {
-                await _context.SaveChangesAsync();
+                _heroRepository.Update(hero);
 
                 /*********** Background processs (We have to rename the image) *************/
-                if (hero.AlterEgo != oldHero.AlterEgo)
+                if (hero.AlterEgo != oldAlterEgo)
                 {
                     // Get the connection string from app settings
                     string connectionString = _configuration.GetConnectionString("AzureStorage");
@@ -95,7 +92,7 @@ namespace tour_of_heroes_api.Controllers
                     // Create a dynamic object to hold the message
                     var message = new
                     {
-                        oldName = oldHero.AlterEgo,
+                        oldName = oldAlterEgo,
                         newName = hero.AlterEgo
                     };
 
@@ -105,20 +102,16 @@ namespace tour_of_heroes_api.Controllers
                 }
                 /*********** End Background processs *************/
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!HeroExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+
+                return NotFound(ex.Message);              
+                
             }
 
             return NoContent();
         }
+
 
         // POST: api/Hero
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -131,8 +124,45 @@ namespace tour_of_heroes_api.Controllers
             return Ok(hero);
 
         }
-
         // DELETE: api/Hero/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteHero(int id)
+        {         
+           
+            try{
+                 
+                  var hero = _heroRepository.GetById(id);
+                 
+                // Get the connection string from app settings
+                string connectionString = _configuration.GetConnectionString("AzureStorage");
+
+                // Instantiate a QueueClient which will be used to create and manipulate the queue
+                var queueClient = new QueueClient(connectionString, "pics-to-delete");
+                
+                // Create a queue
+                await queueClient.CreateIfNotExistsAsync();
+                // Create a dynamic object to hold the message
+                var message = new
+                {
+                    oldName = "heroe",
+                    newName = "none Heroe"
+                };
+
+                // Send the message
+                await queueClient.SendMessageAsync(JsonSerializer.Serialize(message).ToString());
+                _heroRepository.Delete(id);
+            }
+            catch (Exception ex)
+            {
+
+                return NotFound(ex.Message);              
+                
+            }
+
+            return NoContent();
+        }
+        // DELETE: api/Hero/5
+        /*
         [HttpDelete("{id}")]
         public IActionResult DeleteHero(int id)
         {
@@ -140,7 +170,7 @@ namespace tour_of_heroes_api.Controllers
 
             return NoContent();
         }
-
+        */
         // GET: api/hero/alteregopic/5
         [HttpGet("alteregopic/{id}")]
         public async Task<ActionResult<Hero>> GetAlterEgoPic(int id)
