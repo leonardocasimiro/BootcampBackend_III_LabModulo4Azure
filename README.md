@@ -444,3 +444,176 @@ Este lo que hace es que se queda escuchando una cola llamada alteregos que cuand
 ```bash
 AZURE_STORAGE_CONNECTION_STRING="UseDevelopmentStorage=true" dotnet run
 ```
+
+## Laboratorio Módulo 4 - Azure
+### Ejercicio 1 (Obligatorio)
+El objetivo de este ejercicio es modificar el método DeleteHero de la API, que usa nuestra aplicación Tour Of Heroes, para que cada vez que se elimine un héroe se escriba un mensaje en una cola de Azure Storage que diga de qué héroe se debe eliminar su imagen, tanto del héroe como de su alter ego, ya que de no hacerlo el héroe se eliminará de la base de datos, pero no las imágenes que se asociaron a este (y queda guarrería). Además, una vez que se borre el héroe ya no sabremos qué imágenes habría que borrar, así que es el momento 😊 el nombre de la cola debe ser pics-to-delete.
+
+#### App Service WebJobs
+
+Hemos creado un método Delete en el "HeroController.cs" del "BackEnd" el cual crea un webjobs que añadira una cola en "Queues" llamada "pics-to-delete" en Azure Storage (En nuestro caso Azurite Doquerizado)
+<img src="images/azurite.jpg" />
+De tal modo que cuando se borre un Heroes se creará una tarea en la cola "pics-to-delete"
+<img src="images/azureStorage.jpg" />
+
+Donde el metodo Put es el siguiente:
+```csharp
+        // DELETE: api/Hero/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteHero(int id)
+        {         
+           
+            try{
+                 
+                  var hero = _heroRepository.GetById(id);
+                 
+                // Get the connection string from app settings
+                string connectionString = _configuration.GetConnectionString("AzureStorage");
+
+                // Instantiate a QueueClient which will be used to create and manipulate the queue
+                var queueClient = new QueueClient(connectionString, "pics-to-delete");
+                
+                // Create a queue
+                await queueClient.CreateIfNotExistsAsync();
+                // Create a dynamic object to hold the message
+                var message = new
+                {
+                    oldName = hero.Name,
+                    newName = "none Heroe"
+                };
+
+                // Send the message
+                await queueClient.SendMessageAsync(JsonSerializer.Serialize(message).ToString());
+                _heroRepository.Delete(id);
+            }
+            catch (Exception ex)
+            {
+
+                return NotFound(ex.Message);              
+                
+            }
+
+            return NoContent();
+        }
+```
+Para arrancar de nuevo el BAckEnd
+```
+$ dotnet run
+```
+Podremos ver un mensaje como el siguiente al morrar un Heroe
+<img src="images/azureStorage.jpg" />
+
+### Ejercicio 2 (Obligatorio)
+Ahora que ya tienes mensajes que procesar, necesitas algo que lo procese 😊 para ello tienes que crear un proceso en segundo plano que te ayude en esta tarea. Para esto vamos a crear una aplicación de Consola (que potencialmente se despligue en un WebJob). Esta deberá:
+
+Recuperar los mensajes de la cola pics-to-delete.
+Buscar los blobs que almacenan la imagen del héroe
+Eliminar los blobs encontrados.
+
+Para ellos hemos creado una aplicacion de consola llamada "QueueProcessorDelete"
+```csharp
+using System;
+using System.Text.Json;
+using System.Threading;
+using Azure.Storage.Blobs;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
+
+
+Console.WriteLine("Hello to the QueueProcessor!");            
+
+var queueClient = new QueueClient(Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING"), "pics-to-delete");
+
+queueClient.CreateIfNotExists();
+
+while (true)
+{
+   QueueMessage message = queueClient.ReceiveMessage();
+
+    if (message != null)
+                {
+                    Console.WriteLine($"Message received {message.Body}");
+
+                    var task = JsonSerializer.Deserialize<Task>(message.Body);
+
+                    //Console.WriteLine($"Let's rename {task.oldName} to {task.newName}");
+
+                    if (task.oldName != null)
+                    {
+                        //Create a Blob service client
+                        var blobClient = new BlobServiceClient(Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING"));
+
+                        //Get container client
+                        BlobContainerClient containerHeroes = blobClient.GetBlobContainerClient("heroes");
+                        BlobContainerClient containerAlteregos = blobClient.GetBlobContainerClient("alteregos");
+
+                        //Get blob with old name
+                        //var oldFileName = $"{task.oldName.Replace(' ', '-').ToLower()}.png";
+                        var oldFileName = $"{task.oldName.Replace(' ', '-').ToLower()}.jpeg";
+                        Console.WriteLine($"Looking for {oldFileName}");
+                        var oldBlob = containerHeroes.GetBlobClient(oldFileName);                        
+
+                        if (oldBlob.Exists())
+                        {
+                            Console.WriteLine("Found it!");
+                            /*
+                            var newFileName = $"{task.newName.Replace(' ', '-').ToLower()}.png";
+                            Console.WriteLine($"Renaming {oldFileName} to {newFileName}");
+
+                            //Create a new blob with the new name                            
+                            BlobClient newBlob = container.GetBlobClient(newFileName);
+
+                            //Copy the content of the old blob into the new blob
+                            newBlob.StartCopyFromUri(oldBlob.Uri);
+                            */
+                            //Delete the old blob
+                            oldBlob.DeleteIfExists();
+
+                            //Delete message from the queue
+                            queueClient.DeleteMessage(message.MessageId,message.PopReceipt);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"There is no old image to rename.");
+                            Console.WriteLine($"Dismiss task.");
+                            //Delete message from the queue
+                            queueClient.DeleteMessage(message.MessageId, message.PopReceipt);
+                        }
+
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Bad message. Delete it");
+                        //Delete message from the queue
+                        queueClient.DeleteMessage(message.MessageId, message.PopReceipt);
+                        
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Let's wait 5 seconds");
+                    Thread.Sleep(5000);
+                }
+
+            }
+
+class Task
+{
+    public string oldName { get; set; }
+    public string newName { get; set; }
+}
+
+```
+
+Donde para arrancarla debemos:
+```
+ AZURE_STORAGE_CONNECTION_STRING="UseDevelopmentStorage=true" dotnet run
+```
+
+Apareciendo en consola que ha borrado la imagen encontrada que indicaba la tarea pendiente
+
+<img src="images/consola.jpg" />
+
+Si nos fijamos podremos ver que la imagen de spiderman ha desaparecido:
+
+<img src="images/spidermaDeleted.jpg" />

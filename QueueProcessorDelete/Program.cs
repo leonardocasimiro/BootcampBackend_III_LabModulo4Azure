@@ -34,7 +34,8 @@ while (true)
                         BlobContainerClient containerAlteregos = blobClient.GetBlobContainerClient("alteregos");
 
                         //Get blob with old name
-                        var oldFileName = $"{task.oldName.Replace(' ', '-').ToLower()}.png";
+                        //var oldFileName = $"{task.oldName.Replace(' ', '-').ToLower()}.png";
+                        var oldFileName = $"{task.oldName.Replace(' ', '-').ToLower()}.jpeg";
                         Console.WriteLine($"Looking for {oldFileName}");
                         var oldBlob = containerHeroes.GetBlobClient(oldFileName);                        
 
