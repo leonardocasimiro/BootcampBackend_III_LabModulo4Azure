@@ -616,11 +616,11 @@ Donde para arrancarla debemos:
 
 Apareciendo en consola que ha borrado la imagen encontrada que indicaba la tarea pendiente
 
-<img src="images/consola.jpg" />
+<img src="./images/consola.jpg" />
 
 Si nos fijamos podremos ver que la imagen de spiderman ha desaparecido:
 
-<img src="images/spidermaDeleted.jpg" />
+<img src="./images/spidermaDeleted.jpg" />
 
 > ________________________________
 > ________________________________
