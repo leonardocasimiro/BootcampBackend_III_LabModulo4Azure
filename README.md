@@ -125,7 +125,6 @@ Por otro lado, se ha añadido un método adicional llamado `GetAlterEgoPicSas`. 
     }
 ```
 
-
 Ejecuta el front-end utilizando estos comandos:
 
 ```bash
@@ -617,3 +616,31 @@ Apareciendo en consola que ha borrado la imagen encontrada que indicaba la tarea
 Si nos fijamos podremos ver que la imagen de spiderman ha desaparecido:
 
 <img src="images/spidermaDeleted.jpg" />
+
+
+### Reiniciar Toda la Arquitectura
+Ejecuta la API utilizando estos comandos:
+
+```bash
+cd /03-procesos-en-segundo-plano/back-end
+dotnet run
+```
+Ejecuta el front-end utilizando estos comandos:
+
+```bash
+cd /03-procesos-en-segundo-plano/front-end
+npm start
+```
+Ejecutar la aplicacion de consola para convertir los alterego.jpeg a png:
+```bash
+cd /03-procesos-en-segundo-plano/QueueProcessor
+ AZURE_STORAGE_CONNECTION_STRING="UseDevelopmentStorage=true" dotnet run
+```
+Ejecutar la aplicacion de consola para borrar imagen de Heroe:
+```bash
+cd /03-procesos-en-segundo-plano/QueueProcessorDelete
+ AZURE_STORAGE_CONNECTION_STRING="UseDevelopmentStorage=true" dotnet run
+```
+Meter un heroe borrado
+Click en el heroe contenido en:
+> /03-procesos-en-segundo-plano/back-end/client.http
