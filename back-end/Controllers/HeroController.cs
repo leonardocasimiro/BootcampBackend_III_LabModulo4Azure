@@ -144,8 +144,8 @@ namespace tour_of_heroes_api.Controllers
                 // Create a dynamic object to hold the message
                 var message = new
                 {
-                    oldName = hero.Name,
-                    newName = "none Heroe"
+                    heroeName = hero.Name,
+                    alterEgoName = hero.AlterEgo
                 };
 
                 // Send the message

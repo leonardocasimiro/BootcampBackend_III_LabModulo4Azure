@@ -617,8 +617,9 @@ Si nos fijamos podremos ver que la imagen de spiderman ha desaparecido:
 
 <img src="images/spidermaDeleted.jpg" />
 
-
-### Reiniciar Toda la Arquitectura
+> ________________________________
+> ________________________________
+# Reiniciar Toda la Arquitectura
 Ejecuta la API utilizando estos comandos:
 
 ```bash

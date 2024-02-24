@@ -21,10 +21,11 @@ while (true)
                     Console.WriteLine($"Message received {message.Body}");
 
                     var task = JsonSerializer.Deserialize<Task>(message.Body);
-
+                    Console.WriteLine(task.heroeName);
+                    Console.WriteLine(task.alterEgoName);
                     //Console.WriteLine($"Let's rename {task.oldName} to {task.newName}");
 
-                    if (task.oldName != null)
+                    if (task.heroeName != null)
                     {
                         //Create a Blob service client
                         var blobClient = new BlobServiceClient(Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING"));
@@ -33,13 +34,15 @@ while (true)
                         BlobContainerClient containerHeroes = blobClient.GetBlobContainerClient("heroes");
                         BlobContainerClient containerAlteregos = blobClient.GetBlobContainerClient("alteregos");
 
-                        //Get blob with old name
-                        //var oldFileName = $"{task.oldName.Replace(' ', '-').ToLower()}.png";
-                        var oldFileName = $"{task.oldName.Replace(' ', '-').ToLower()}.jpeg";
-                        Console.WriteLine($"Looking for {oldFileName}");
-                        var oldBlob = containerHeroes.GetBlobClient(oldFileName);                        
+                        //Get blob with name
+                        var heroeFileName = $"{task.heroeName.Replace(' ', '-').ToLower()}.jpeg";
+                        var alterEgoFileName = $"{task.alterEgoName.Replace(' ', '-').ToLower()}.png";
+                        Console.WriteLine($"Looking for {heroeFileName}");
+                        var heroeBlob = containerHeroes.GetBlobClient(heroeFileName);    
+                        Console.WriteLine($"Looking for {alterEgoFileName}");
+                        var alterEgoBlob = containerAlteregos.GetBlobClient(alterEgoFileName);                     
 
-                        if (oldBlob.Exists())
+                        if (heroeBlob.Exists())
                         {
                             Console.WriteLine("Found it!");
                             /*
@@ -53,14 +56,25 @@ while (true)
                             newBlob.StartCopyFromUri(oldBlob.Uri);
                             */
                             //Delete the old blob
-                            oldBlob.DeleteIfExists();
+                            heroeBlob.DeleteIfExists();
 
                             //Delete message from the queue
                             queueClient.DeleteMessage(message.MessageId,message.PopReceipt);
+                            if (alterEgoBlob.Exists()){
+                                Console.WriteLine("Found it!");
+                                alterEgoBlob.DeleteIfExists();
+                            }
+                            else
+                            {
+                                Console.WriteLine($"There is no alterEgo image to delete.");
+                                Console.WriteLine($"Dismiss task.");
+                                //Delete message from the queue
+                                queueClient.DeleteMessage(message.MessageId, message.PopReceipt);
+                            }
                         }
                         else
                         {
-                            Console.WriteLine($"There is no old image to rename.");
+                            Console.WriteLine($"There is no heroe image to delete.");
                             Console.WriteLine($"Dismiss task.");
                             //Delete message from the queue
                             queueClient.DeleteMessage(message.MessageId, message.PopReceipt);
@@ -85,6 +99,6 @@ while (true)
 
 class Task
 {
-    public string oldName { get; set; }
-    public string newName { get; set; }
+    public string heroeName { get; set; }
+    public string alterEgoName { get; set; }
 }

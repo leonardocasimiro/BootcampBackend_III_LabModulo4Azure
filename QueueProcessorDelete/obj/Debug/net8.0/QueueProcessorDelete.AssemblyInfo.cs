@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QueueProcessorDelete")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b349ea66667cdcef6c247a8e008dff428b4416d0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+94f8e45ef436f2ed837d096216226f9e55413932")]
 [assembly: System.Reflection.AssemblyProductAttribute("QueueProcessorDelete")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QueueProcessorDelete")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
