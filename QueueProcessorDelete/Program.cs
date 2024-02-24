@@ -45,16 +45,7 @@ while (true)
                         if (heroeBlob.Exists())
                         {
                             Console.WriteLine("Found it!");
-                            /*
-                            var newFileName = $"{task.newName.Replace(' ', '-').ToLower()}.png";
-                            Console.WriteLine($"Renaming {oldFileName} to {newFileName}");
-
-                            //Create a new blob with the new name                            
-                            BlobClient newBlob = container.GetBlobClient(newFileName);
-
-                            //Copy the content of the old blob into the new blob
-                            newBlob.StartCopyFromUri(oldBlob.Uri);
-                            */
+ 
                             //Delete the old blob
                             heroeBlob.DeleteIfExists();
 
